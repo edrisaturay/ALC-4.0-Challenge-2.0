@@ -3,11 +3,14 @@ package com.edrisa.travelmantics;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
+import com.edrisa.travelmantics.Adapters.DealsAdapter;
 import com.edrisa.travelmantics.Utils.FirebaseUtil;
 import com.edrisa.travelmantics.models.TravelDeals;
 import com.google.firebase.database.ChildEventListener;
@@ -32,13 +35,15 @@ public class ListActivity extends AppCompatActivity {
     private DatabaseReference m_database_reference;
     private ChildEventListener m_child_event_listener;
 
+    private RecyclerView rv_deals;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
 
         initComponents();
-        initFirebase();
+        initRecyclerView();
 
     }
 
@@ -47,40 +52,11 @@ public class ListActivity extends AppCompatActivity {
 
     }
 
-    private void initFirebase(){
-//        m_firebase_database = FirebaseDatabase.getInstance();
-//        m_database_reference = m_firebase_database.getReference().child("travel_deals");
-        FirebaseUtil.openFbReference("travel_deals");
-        m_firebase_database = FirebaseUtil.m_firebase_database;
-        m_database_reference = FirebaseUtil.m_database_reference;
-        m_child_event_listener = new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                TravelDeals travel_deal = dataSnapshot.getValue(TravelDeals.class);
-                Log.d(TAG, travel_deal.getCity());
-                tv_city.setText(travel_deal.getCity());
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        };
-        m_database_reference.addChildEventListener(m_child_event_listener);
+    private void initRecyclerView(){
+        rv_deals = findViewById(R.id.rv_deals);
+        final DealsAdapter deal_adapter = new DealsAdapter();
+        rv_deals.setAdapter(deal_adapter);
+        LinearLayoutManager deals_layout_manager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
+        rv_deals.setLayoutManager(deals_layout_manager);
     }
 }
