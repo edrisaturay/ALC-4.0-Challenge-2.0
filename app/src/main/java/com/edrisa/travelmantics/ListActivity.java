@@ -6,8 +6,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.edrisa.travelmantics.Adapters.DealsAdapter;
@@ -58,5 +62,23 @@ public class ListActivity extends AppCompatActivity {
         rv_deals.setAdapter(deal_adapter);
         LinearLayoutManager deals_layout_manager = new LinearLayoutManager(this, RecyclerView.VERTICAL, false);
         rv_deals.setLayoutManager(deals_layout_manager);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        MenuInflater menu_inflater = getMenuInflater();
+        menu_inflater.inflate(R.menu.list_activity_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.mi_insert:
+                startActivity(new Intent(ListActivity.this, MainActivity.class));
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

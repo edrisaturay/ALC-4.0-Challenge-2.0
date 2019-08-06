@@ -1,16 +1,20 @@
 package com.edrisa.travelmantics.Adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.edrisa.travelmantics.MainActivity;
 import com.edrisa.travelmantics.R;
 import com.edrisa.travelmantics.Utils.FirebaseUtil;
 import com.edrisa.travelmantics.models.TravelDeals;
@@ -19,6 +23,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -86,17 +91,43 @@ public class DealsAdapter extends RecyclerView.Adapter<DealsAdapter.DealViewHold
         return deals.size();
     }
 
-    public class DealViewHolder extends RecyclerView.ViewHolder{
-        TextView tv_city;
+    public class DealViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+        TextView tv_city, tv_name, tv_price;
+        ImageView iv_deal_image;
+
         public DealViewHolder(@NonNull View itemView) {
             super(itemView);
-
             tv_city = itemView.findViewById(R.id.tv_city);
+            tv_name = itemView.findViewById(R.id.tv_name);
+            tv_price = itemView.findViewById(R.id.tv_price);
+            iv_deal_image = itemView.findViewById(R.id.iv_deal_image);
+            itemView.setOnClickListener(this);
         }
 
         public void bind(TravelDeals travel_deal){
             tv_city.setText(travel_deal.getCity());
+            tv_name.setText(travel_deal.getName());
+            tv_price.setText(travel_deal.getPrice());
+            loadImagetoImageView(travel_deal.getImage_url());
+        }
+
+        private void loadImagetoImageView(String url){
+            Log.d("Image: " , ""+ url);
+            if (url != null && url.isEmpty() == false){
+                Glide.with(iv_deal_image.getContext()).load(url).centerCrop().into(iv_deal_image);
+            }
+
+        }
+
+        @Override
+        public void onClick(View view) {
+            int position = getAdapterPosition();
+            TravelDeals selected_deal = deals.get(position);
+            Intent intent = new Intent(view.getContext(), MainActivity.class);
+            intent.putExtra("TRAVEL_DEAL", selected_deal);
+            view.getContext().startActivity(intent);
         }
     }
+
 
 }

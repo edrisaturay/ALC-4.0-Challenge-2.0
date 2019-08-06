@@ -1,6 +1,8 @@
 package com.edrisa.travelmantics.models;
 
-public class TravelDeals {
+import java.io.Serializable;
+
+public class TravelDeals implements Serializable {
 
 
 
@@ -22,6 +24,13 @@ public class TravelDeals {
         this.city = city;
         this.price = price;
         this.name = name;
+    }
+
+    public TravelDeals(String city, String price, String name, String image_url) {
+        this.city = city;
+        this.price = price;
+        this.name = name;
+        this.image_url = image_url;
     }
 
     public TravelDeals() {

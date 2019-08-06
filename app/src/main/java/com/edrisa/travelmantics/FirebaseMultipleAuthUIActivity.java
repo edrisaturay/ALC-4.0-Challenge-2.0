@@ -123,7 +123,7 @@ public class FirebaseMultipleAuthUIActivity extends AppCompatActivity {
 
     private void gotoMainActivity(){
         Log.d(TAG, "gotoMainActivity Fired");
-        startActivity(new Intent(FirebaseMultipleAuthUIActivity.this, MainActivity.class));
+        startActivity(new Intent(FirebaseMultipleAuthUIActivity.this, ListActivity.class));
         finish();
     }
 

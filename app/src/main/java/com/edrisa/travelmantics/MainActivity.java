@@ -18,6 +18,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.edrisa.travelmantics.Utils.FirebaseUtil;
 import com.edrisa.travelmantics.models.TravelDeals;
 import com.firebase.ui.auth.AuthUI;
@@ -44,6 +45,9 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseDatabase m_firebase_database;
     private DatabaseReference m_database_reference;
 
+    TravelDeals travel_deal;
+    Intent intent;
+
     private static final int PICTURE_INTENT = 1001;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +59,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initComponents(){
+        iv_selected_image = findViewById(R.id.iv_selected_image);
+        et_name = findViewById(R.id.et_name);
+        et_price = findViewById(R.id.et_price);
+        et_city = findViewById(R.id.et_city);
         btn_select_image = findViewById(R.id.btn_select_image);
+
+        intent = getIntent();
+        travel_deal = (TravelDeals) intent.getSerializableExtra("TRAVEL_DEAL");
+        if(travel_deal == null){
+            travel_deal = new TravelDeals();
+        }
+        loadImagetoImageView(travel_deal.getImage_url());
         btn_select_image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -65,36 +80,19 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(Intent.createChooser(intent, "Insert Picture"), PICTURE_INTENT);
             }
         });
-        iv_selected_image = findViewById(R.id.iv_selected_image);
-        et_name = findViewById(R.id.et_name);
-        et_price = findViewById(R.id.et_price);
-        et_city = findViewById(R.id.et_city);
+
+        et_name.setText(travel_deal.getName());
+        et_price.setText(travel_deal.getPrice());
+        et_city.setText(travel_deal.getCity());
+
     }
 
     private void initFirebase(){
-//        m_firebase_database = FirebaseDatabase.getInstance();
-//        m_database_reference = m_firebase_database.getReference().child("travel_deals");
-
         FirebaseUtil.openFbReference("travel_deals");
         m_firebase_database = FirebaseUtil.m_firebase_database;
         m_database_reference = FirebaseUtil.m_database_reference;
-
         m_storage = FirebaseStorage.getInstance();
         m_storage_ref = m_storage.getReference().child("deal_pictures");
-    }
-    private void signOut(){
-        AuthUI.getInstance()
-                .signOut(this)
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    public void onComplete(@NonNull Task<Void> task) {
-                        Toast.makeText(MainActivity.this, "Closing app. please try again.", Toast.LENGTH_LONG).show();
-                        finish();
-                    }
-                });
-    }
-
-    private void connectStorage(){
-
     }
 
     @Override
@@ -102,16 +100,22 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == PICTURE_INTENT && resultCode == RESULT_OK ){
             Uri image_uri = data.getData();
-            StorageReference ref = m_storage_ref.child(image_uri.getLastPathSegment());
+            final StorageReference ref = m_storage_ref.child(image_uri.getLastPathSegment());
             ref.putFile(image_uri)
             .addOnSuccessListener(MainActivity.this, new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    String url = taskSnapshot.getUploadSessionUri().toString();
-                    Log.d(TAG, "Image Url: " + url);
-                    loadImagetoImageView(url);
+                    final String[] url = new String[1];
+                    ref.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                        @Override
+                        public void onSuccess(Uri uri) {
+                            Log.d(TAG, "2 Image : " + uri.toString());
+                            travel_deal.setImage_url(uri.toString());
+                        }
+                    });
                 }
             });
+            loadImagetoImageView(image_uri.toString());
         }
     }
 
@@ -138,26 +142,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadImagetoImageView(String url){
-        int width = Resources.getSystem().getDisplayMetrics().widthPixels;
-        Picasso.with(MainActivity.this)
-                .load(url)
-                .resize(width, width*2/3)
-                .centerCrop()
-                .into(iv_selected_image);
-    }
+        Log.d("Image: " , ""+ url);
+        if (url != null && url.isEmpty() == false){
+            Glide.with(MainActivity.this).load(url).centerCrop().into(iv_selected_image);
+        }
 
+    }
     private void saveDealToFirebase(){
-        String deal_city = et_city.getText().toString();
-        String deal_price = et_price.getText().toString();
-        String deal_name = et_name.getText().toString();
-        TravelDeals travel_deal = new TravelDeals(deal_city, deal_price, deal_name);
-        m_database_reference.push().setValue(travel_deal);
+        travel_deal.setCity(et_city.getText().toString());
+        travel_deal.setPrice(et_price.getText().toString());
+        travel_deal.setName(et_name.getText().toString());
+
+        if(travel_deal.getId() == null){
+            m_database_reference.push().setValue(travel_deal);
+        }else{
+            m_database_reference.child(travel_deal.getId()).setValue(travel_deal);
+        }
     }
 
     private void cleanViews(){
         et_city.setText("");
         et_price.setText("");
         et_name.setText("");
+        iv_selected_image.setImageResource(android.R.color.transparent);
         et_city.requestFocus();
     }
 }
